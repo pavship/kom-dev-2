@@ -7,25 +7,29 @@ import * as serviceWorker from './serviceWorker'
 import ApolloClient from 'apollo-boost'
 import { ApolloProvider } from 'react-apollo'
 
+import { AUTH_TOKEN } from './constants'
+
 // @ts-ignore
 const client = new ApolloClient({
 	uri: 'http://localhost:4000',
 	// uri: 'https://now-advanced.now.sh',
 	// uri: 'https://env-1542080.mircloud.ru',
-	// request: (operation) => {
-	// 	const token = localStorage.getItem(AUTH_TOKEN)
-	// 	operation.setContext({
-	// 		headers: {
-	// 			Authorization: token ? `Bearer ${token}` : '',
-	// 		}
-	// 	})
-	// }
+	request: (operation) => {
+		const token = localStorage.getItem(AUTH_TOKEN)
+		operation.setContext({
+			headers: {
+				Authorization: token ? `Bearer ${token}` : '',
+			}
+		})
+	}
 })
+
+const token = localStorage.getItem(AUTH_TOKEN)
 
 ReactDOM.render(
 	<ApolloProvider client={client}>
 		<App
-      // token={token}
+      token={token}
       client={client}
     />
 	</ApolloProvider>
