@@ -54,7 +54,7 @@ class LoginPage extends Component {
 			<Fragment>
 				<MenuDiv>
 					<MenuHeader size='large'>
-						<i>Колмех</i>
+						<i>Продукция на участках</i>
 					</MenuHeader>
 				</MenuDiv>
 				<SSegment basic>

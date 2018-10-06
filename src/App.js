@@ -7,6 +7,7 @@ import { Query } from 'react-apollo'
 import { me } from './graphql/user'
 
 import LoginPage from './components/shared/LoginPage'
+import Store from './components/Store';
 
 class Root extends Component {
 	state = {
@@ -52,9 +53,10 @@ class Root extends Component {
 								if (loading) return null
 								if (error) return `Error!: ${error.message}`
 								return (
-									<div>
-                    Logged In!
-                  </div>
+									<Store
+                    me={data.me}
+                    refreshToken={this.refreshToken}
+                  />
 								)
 							}}
 					</Query> 
