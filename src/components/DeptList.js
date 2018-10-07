@@ -14,18 +14,7 @@ const SSegment = styled(Segment)`
 `
 
 class DeptList extends Component {
-
-  state = { activeIndex: [] }
-
-  handleClick = (e, titleProps) => {
-    const { index } = titleProps
-    const { activeIndex } = this.state
-    const newIndex = _.includes(activeIndex, index) ? _.without(activeIndex, index) : [...activeIndex, index]
-    this.setState({ activeIndex: newIndex })
-  }
-
   render() {
-    const { activeIndex } = this.state
     const { depts: propDepts } = this.props
     const depts = _.cloneDeep(propDepts).map(d => ({
       ...d,
@@ -35,7 +24,6 @@ class DeptList extends Component {
           dMs.push({
             model: { ...prods[0].model },
             prods: _.sortBy(prods.map(p => {
-              console.log('a.progress > ', p.fullnumber, p.progress, parseFloat(p.progress))
               delete p.model
               return p
             }), function(o) { return -(o.progress || !o.progress); })
@@ -45,11 +33,10 @@ class DeptList extends Component {
       ),
       prods: 'cleared'
     }))
-    console.log('depts > ', depts)
+    // console.log('depts > ', depts)
     return (
       <Accordion fluid>
         {depts.map((dept, i) => {
-          const active = _.includes(activeIndex, i)
           return (
             <SSegment
               key={dept.id}

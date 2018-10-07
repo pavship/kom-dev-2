@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
-import { graphql, compose } from 'react-apollo'
+import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Modal, Form, Icon, Button } from 'semantic-ui-react'
 
 const AllDeptsAndModelsQuery = gql`
   query AllDeptsAndModelsQuery {
-    allDepts {
+    depts {
       id
       name
     }
@@ -41,7 +41,7 @@ class MoveModal extends Component {
     const deptOptions = !query ? [ { text: 'Участок ', value: '' } ] :
       query.loading ? [ { text: 'Загрузка списка', value: '' } ] :
       query.error ? [ { text: 'Ошибка загрузки списка', value: '' } ] :
-      query.allDepts.map(dept => {
+      query.depts.map(dept => {
         return {
           text: dept.name,
           value:  dept.id

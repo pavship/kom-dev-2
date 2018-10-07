@@ -21,7 +21,7 @@ class ProdItem extends Component {
 
   render() {
     const {checked} = this.state
-    const {id, melt, meltShift, number, year, fullnumber, progress, isSpoiled, hasDefect, note} = this.props.prod
+    const {melt, meltShift, number, year, progress, isSpoiled, hasDefect} = this.props.prod
 
     return (
       <List.Item onClick={this.handleClick} active={checked}>
