@@ -1,8 +1,24 @@
 import React, { Component } from 'react'
 import _ from 'lodash'
 
+import styled from 'styled-components'
 import { Accordion, Icon, Label, Header } from 'semantic-ui-react'
-// import ProdList from './ProdList'
+import ProdList from './ProdList'
+
+const AccordionTitle = styled(Accordion.Title)`
+  &&&& {
+    margin-top: 0;
+    padding-top: 0;
+    ${props => props.active && `{
+      padding-bottom: 0;
+    }`}
+  }
+`
+const AccordionContent = styled(Accordion.Content)`
+  &&&& {
+    padding-top: 0;
+  }
+`
 
 class ModelList extends Component {
 
@@ -23,7 +39,7 @@ class ModelList extends Component {
     const deptModels = this.props.deptModels.map((deptModel, i) => {
       const prods = deptModel.prods
       const allProdsCount = prods.length
-      const prodsReadyCount = prods.filter(p => p.percent === 100).length
+      const prodsReadyCount = prods.filter(p => p.progress === 100).length
       const prodsDefectCount = prods.filter(p => p.hasDefect).length
       const prodsSpoiledCount = prods.filter(p => p.isSpoiled).length
       const prodsInProgressCount = allProdsCount - prodsReadyCount - prodsSpoiledCount
@@ -32,7 +48,7 @@ class ModelList extends Component {
 
       return (
         <div key={deptModel.model.id} >
-          <Accordion.Title
+          <AccordionTitle
             active={active}
             index={i}
             onClick={this.handleClick}
@@ -73,11 +89,11 @@ class ModelList extends Component {
                 </Label>
               }
             </Label.Group>
-          </Accordion.Title>
+          </AccordionTitle>
           {active &&
-            <Accordion.Content active>
-              {/* <ProdList prods={deptModel.prods} selectProd={this.props.selectProd} /> */}
-            </Accordion.Content>
+            <AccordionContent active>
+              <ProdList prods={deptModel.prods} selectProd={this.props.selectProd} />
+            </AccordionContent>
           }
         </div>
       )

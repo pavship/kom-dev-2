@@ -2,26 +2,14 @@ import React, { Component } from 'react'
 import _ from 'lodash'
 
 import styled from 'styled-components'
-import { Accordion, Icon, Segment, Header } from 'semantic-ui-react'
-import { Caret } from './shared/styled-semantic'
+import { Accordion, Segment } from 'semantic-ui-react'
 
 import ModelList from './ModelList'
+import CollapsableSection from './shared/CollapsableSection';
 
-const Title = styled(Accordion.Title)`
+const SSegment = styled(Segment)`
   &&&& {
-    padding-bottom: 0;
-  }
-`
-
-const SIcon = styled(Icon)`
-  i {
-    font-size: 1.5rem !important;
-  }
-`
-
-const Span = styled.span`
-  &&&& {
-    font-size: 1.25rem;
+    padding: 0;
   }
 `
 
@@ -43,13 +31,14 @@ class DeptList extends Component {
       ...d,
       prodsCount: d.prods.length,
       deptModels: _(d.prods).groupBy('model.id').reduce(
-        function (dMs, prods, key) {
+        function (dMs, prods) {
           dMs.push({
             model: { ...prods[0].model },
-            prods: prods.map(p => {
+            prods: _.sortBy(prods.map(p => {
+              console.log('a.progress > ', p.fullnumber, p.progress, parseFloat(p.progress))
               delete p.model
               return p
-            })
+            }), function(o) { return -(o.progress || !o.progress); })
           })
           return dMs
         }, []
@@ -62,37 +51,22 @@ class DeptList extends Component {
         {depts.map((dept, i) => {
           const active = _.includes(activeIndex, i)
           return (
-            <Segment
+            <SSegment
               key={dept.id}
               color={
                 dept.type === 'TRANSPORT' ? 'green' :
                 dept.type === 'PARTNER' ? 'blue' :
                 dept.type === 'CLIENT' ? 'purple' :
                 'black'
-              }>
-              <Title
-                active={active}
-                index={i}
-                onClick={this.handleClick}
+            }>
+              <CollapsableSection
+                size='large'
+                title={dept.name}
+                subtitle={`(${dept.prodsCount})`}
               >
-                {/* <SIcon name='dropdown' size='large' /> */}
-                <Caret
-                  size='large'
-                  active={1}
-                />
-                <Header size='large' as='span'>
-                  {dept.name} <Span>
-                    ({dept.prodsCount})
-                  </Span>
-                </Header>
-                {/* <Button icon='plus' size='small' floated='right' /> */}
-              </Title>
-              { active &&
-                <Accordion.Content active>
-                  <ModelList deptModels={dept.deptModels} selectProd={this.props.selectProd}/>
-                </Accordion.Content>
-              }
-            </Segment>
+                <ModelList deptModels={dept.deptModels} selectProd={this.props.selectProd}/>
+              </CollapsableSection>
+            </SSegment>
           )}
         )}
       </Accordion>

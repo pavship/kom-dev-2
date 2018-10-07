@@ -144,7 +144,7 @@ const SectionPropFiltered = ({ head, minor, small, secondary, noIndent, topBorde
 export const Section = styled(SectionPropFiltered)`
 	& {
 		width: 100%
-		padding: 1em 1em 1em 55px;
+		padding: 1em 1em 1em 1em;
 		${props => props.head && `{
 			display: flex;
 			align-items: center;
