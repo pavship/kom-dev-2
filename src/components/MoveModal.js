@@ -13,7 +13,6 @@ const AllDeptsAndModelsQuery = gql`
 `
 
 class MoveModal extends Component {
-
   state = {
     open: false,
     deptId: ''
@@ -32,11 +31,9 @@ class MoveModal extends Component {
     this.props.moveProds(deptId)
     this.close()
   }
-
   render() {
     const { open, deptId } = this.state
     const { trigger } = this.props
-
     const query = this.props.AllDeptsAndModelsQuery
     const deptOptions = !query ? [ { text: 'Участок ', value: '' } ] :
       query.loading ? [ { text: 'Загрузка списка', value: '' } ] :
@@ -47,7 +44,6 @@ class MoveModal extends Component {
           value:  dept.id
         }
       })
-
     return (
       <Modal
         trigger={trigger}
@@ -72,7 +68,6 @@ class MoveModal extends Component {
       </Modal>
     )
   }
-
 }
 
 export default graphql(AllDeptsAndModelsQuery, { name: 'AllDeptsAndModelsQuery' })(MoveModal)

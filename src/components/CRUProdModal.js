@@ -1,7 +1,11 @@
 import React, { Component } from 'react'
+import _ from 'lodash'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Modal, Form, Icon, Button } from 'semantic-ui-react'
+
+import { upsertProd } from '../graphql/prod'
+import { deptFragment } from '../graphql/dept'
 
 const allDeptsAndModelsQuery = gql`
   query allDeptsAndModelsQuery {
@@ -12,43 +16,6 @@ const allDeptsAndModelsQuery = gql`
     models {
       id
       name
-    }
-  }
-`
-
-const createProdMutation = gql`
-  mutation createProdMutation($createdById: ID!, $deptId: ID!, $modelId: ID!, $melt: Int!, $meltShift: Int, $number: Int!, $year: Int!, $progress: Float, $hasDefect: Boolean, $isSpoiled: Boolean ) {
-    createProd(
-      createdById: $createdById,
-      deptId: $deptId,
-      modelId: $modelId,
-      melt: $melt,
-      meltShift: $meltShift,
-      number: $number,
-      year: $year,
-      progress: $progress,
-      hasDefect: $hasDefect,
-      isSpoiled: $isSpoiled
-    ) {
-      id
-    }
-  }
-`
-
-const updateProdMutation = gql`
-  mutation updateProdMutation($prodId: ID!, $updatedById: ID!, $melt: Int!, $meltShift: Int, $number: Int!, $year: Int!, $progress: Float, $hasDefect: Boolean, $isSpoiled: Boolean) {
-    updateProd(
-      id: $prodId
-      updatedById: $updatedById,
-      melt: $melt,
-      meltShift: $meltShift,
-      number: $number,
-      year: $year,
-      progress: $progress,
-      hasDefect: $hasDefect,
-      isSpoiled: $isSpoiled
-    ) {
-      id
     }
   }
 `
@@ -76,7 +43,6 @@ class CRUProdModal extends Component {
       yearErr: false,
       progressErr: false
     }
-
     if (props.mode === 'edit') {
       this.state = {
         ...this.state,
@@ -85,12 +51,9 @@ class CRUProdModal extends Component {
       // replace nulls with '' for React controlled components to work
       for(let k in this.state) {(this.state[k] === null) && (this.state[k] = '')}
     }
-
   }
-
   open = () => this.setState({ open: true })
   close = () => this.setState({ open: false })
-
   handleSelChange = (event, {name, value, required}) => {
     //style input as warning if value is not appropriate
     const warn = (value === '' && required) ? true : false
@@ -100,7 +63,6 @@ class CRUProdModal extends Component {
     })
     console.log(`Selected: ${ value}`)
   }
-
   handleIntChange = (event, {name, value, min, max, required}) => {
     //in case of an error keep empty string for React controlled component
     const intValue = parseInt(value, 10) || (parseInt(value, 10) === 0 ? 0 : '')
@@ -111,7 +73,6 @@ class CRUProdModal extends Component {
       [`${name}Err`]: warn
     })
   }
-
   changeStatus = (e, {name}) => {
     e.preventDefault()
     e.stopPropagation()
@@ -126,16 +87,15 @@ class CRUProdModal extends Component {
       this.setState({ [name]: true })
     }
   }
-
   confirm = () => {
     const mode = this.props.mode
-
     //VALIDATION
     const requiredFields = (mode === 'create') ?
       ['deptId', 'modelId', 'melt', 'number', 'year'] :
       ['melt', 'number', 'year']
     let shouldExit = false
     //check for empty required fields and setting corresponding errors
+    // @ts-ignore
     this.setState(Object.assign(...requiredFields.map(field => {
       if (this.state[field] === '') {
         shouldExit = true
@@ -149,51 +109,43 @@ class CRUProdModal extends Component {
     })
     //terminate if validation failed
     if (shouldExit) {return null}
-
     const { id, deptId, modelId, melt, number, year } = this.state
     const meltShift = this.state.meltShift || null
     const progress = this.state.progress || null
     const hasDefect = this.state.hasDefect || null
     const isSpoiled = this.state.isSpoiled || null
-
+    const input = {
+      deptId,
+      modelId,
+      melt,
+      meltShift,
+      number,
+      year,
+      progress,
+      hasDefect,
+      isSpoiled
+    }
     if (mode === 'create') {
-      this.props.createProdMutation ({
+      this.props.upsertProd({
         variables: {
-          deptId,
-          modelId,
-          melt,
-          meltShift,
-          number,
-          year,
-          progress,
-          hasDefect,
-          isSpoiled
+          input: { ...input }
         }
       })
     } else if (mode === 'edit') {
-      const prodId = id
-      this.props.updateProdMutation ({
+      input.id = id
+      this.props.upsertProd({
         variables: {
-          prodId,
-          melt,
-          meltShift,
-          number,
-          year,
-          progress,
-          hasDefect,
-          isSpoiled
+          input: { ...input }
         }
       })
     }
     this.close()
   }
-
   render() {
     const { open, deptId, modelId, melt, meltShift, number, year, progress, hasDefect, isSpoiled, deptIdErr, modelIdErr, meltErr, meltShiftErr, numberErr, yearErr, progressErr } = this.state
-    const { prod, trigger, mode } = this.props
+    const { trigger, mode } = this.props
     let deptOptions = [{ text: 'Участок ', value: '' }]
     let modelOptions = [{ text: 'Вид продукции', value: '' }]
-
     if (mode === 'create') {
       const query = this.props.allDeptsAndModelsQuery
       deptOptions = !query ? [ { text: 'Участок ', value: '' } ] :
@@ -282,16 +234,32 @@ class CRUProdModal extends Component {
 
 export default compose(
   graphql(allDeptsAndModelsQuery, { name: 'allDeptsAndModelsQuery' }),
-  graphql(createProdMutation, {
-    name: 'createProdMutation',
+  graphql(upsertProd, {
+    name: 'upsertProd',
     options: {
-      refetchQueries: ['allDepts']
+      update: (cache, {data: reponseData}) => {
+				const newProd = reponseData.upsertProd
+				// @ts-ignore
+				const id = `Dept:${newProd.dept.id}`
+				const fragment = deptFragment
+				let data = cache.readFragment({
+					id,
+					fragment
+        })
+        delete newProd.dept
+        if (!data.prods) data.prods = []
+				data.prods = [...data.prods.filter(p => p.id !== newProd.id), newProd]
+				// data.prods = _.sortBy(
+        //   [...data.prods.filter(p => p.id !== newProd.id), newProd],
+        //   function(o) { return -(o.progress || !o.progress); }
+        // )
+				cache.writeFragment({
+					id,
+					fragment,
+					data
+				})
+			},
+      // refetchQueries: ['allDepts']
     }
   }),
-  graphql(updateProdMutation, { 
-    name: 'updateProdMutation',
-    options: {
-      refetchQueries: ['allDepts']
-    }
-  })
 )(CRUProdModal)

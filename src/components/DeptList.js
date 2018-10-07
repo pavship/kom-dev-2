@@ -19,7 +19,7 @@ class DeptList extends Component {
     const depts = _.cloneDeep(propDepts).map(d => ({
       ...d,
       prodsCount: d.prods.length,
-      deptModels: _(d.prods).groupBy('model.id').reduce(
+      deptModels: _(d.prods).sortBy('model.name').groupBy('model.id').reduce(
         function (dMs, prods) {
           dMs.push({
             model: { ...prods[0].model },

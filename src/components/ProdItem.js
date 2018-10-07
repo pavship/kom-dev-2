@@ -4,7 +4,7 @@ import CRUProdModal from './CRUProdModal'
 
 class ProdItem extends Component {
   state = {
-    checked: false
+    checked: false,
   }
 
   handleClick = (e, d) => {
@@ -14,8 +14,9 @@ class ProdItem extends Component {
     this.props.selectProd(id)
   }
 
+  // TODO solve problem: unable to stopPropagation!
   preventPropagation = (e, eb) => {
-    e.preventDefault()
+    // e.preventDefault()
     e.stopPropagation()
   }
 

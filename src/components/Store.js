@@ -3,23 +3,13 @@ import _ from 'lodash'
 
 import { graphql, compose } from 'react-apollo'
 import { allDepts } from '../graphql/dept'
-// import { moveProds } from '../graphql/prod'
+import { moveProds } from '../graphql/prod'
 
 import { Container } from 'semantic-ui-react'
 
 import NavBar from './NavBar'
 import DeptList from './DeptList'
 import DataLoadErrorMessage from './common/DataLoadErrorMessage'
-
-import gql from 'graphql-tag'
-const moveProds = gql`
-  mutation moveProds ( $to: ID!, $prodIds: [ID!]!) {
-    moveProds (
-      to: $to,
-      prodIds: $prodIds
-    ) { success }
-  }
-`
 
 class Store extends Component {
   state={
@@ -39,13 +29,12 @@ class Store extends Component {
   }
   moveProds = async (deptId) => {
     const { selectedProds } = this.state
-    const result = await this.props.moveProds({
-     variables: {
-       to: deptId,
-       prodIds: selectedProds
-     }
+    await this.props.moveProds({
+      variables: {
+        to: deptId,
+        prodIds: selectedProds
+      }
     })
-    console.log(result)
   }
   render() {
     const {visibleDeptTypes} = this.state
@@ -75,7 +64,24 @@ export default compose (
   graphql( moveProds, {
     name: 'moveProds',
     options: {
-      refetchQueries: ['allDepts']
+      update: (cache, { data: reponseData }) => {
+        const { prods, to }= reponseData.moveProds
+        const query = allDepts
+        const data = cache.readQuery({ query })
+        const allMovedProds = _(prods).groupBy('dept.id').reduce(
+          function(allMovedProds, prods, deptId) {
+            const dept = data.depts.find(d => d.id === deptId)
+            const deptMovedProds = _.intersectionBy(dept.prods, prods, 'id')
+            dept.prods = _.differenceBy(dept.prods, prods, 'id')
+            return [...allMovedProds, ...deptMovedProds]
+          }, []
+        )
+        console.log('allMovedProds > ', allMovedProds)
+        const dept = data.depts.find(d => d.id === to)
+        dept.prods = [...dept.prods, ...allMovedProds]
+        cache.writeQuery({ query, data })
+      },
+      // refetchQueries: ['allDepts']
     }
   })
 ) (Store)
