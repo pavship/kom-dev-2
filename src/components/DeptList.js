@@ -22,6 +22,7 @@ class DeptList extends Component {
       deptModels: _(d.prods).sortBy('model.name').groupBy('model.id').reduce(
         function (dMs, prods) {
           dMs.push({
+            id: prods[0].model.id,
             model: { ...prods[0].model },
             prods: _.sortBy(prods.map(p => {
               delete p.model

@@ -44,13 +44,14 @@ class ModelList extends Component {
       const prodsSpoiledCount = prods.filter(p => p.isSpoiled).length
       const prodsInProgressCount = allProdsCount - prodsReadyCount - prodsSpoiledCount
 
-      const active = _.includes(activeIndex, i)
+      const { id } = deptModel
+      const active = _.includes(activeIndex, id)
 
       return (
-        <div key={deptModel.model.id} >
+        <div key={id + '_deptModel'} >
           <AccordionTitle
             active={active}
-            index={i}
+            index={id}
             onClick={this.handleClick}
           >
             <Icon name='dropdown' />

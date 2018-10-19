@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import _ from 'lodash'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Modal, Form, Icon, Button } from 'semantic-ui-react'
@@ -249,10 +248,6 @@ export default compose(
         delete newProd.dept
         if (!data.prods) data.prods = []
 				data.prods = [...data.prods.filter(p => p.id !== newProd.id), newProd]
-				// data.prods = _.sortBy(
-        //   [...data.prods.filter(p => p.id !== newProd.id), newProd],
-        //   function(o) { return -(o.progress || !o.progress); }
-        // )
 				cache.writeFragment({
 					id,
 					fragment,

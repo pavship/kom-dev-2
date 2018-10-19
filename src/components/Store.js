@@ -29,12 +29,17 @@ class Store extends Component {
   }
   moveProds = async (deptId) => {
     const { selectedProds } = this.state
-    await this.props.moveProds({
-      variables: {
-        to: deptId,
-        prodIds: selectedProds
-      }
-    })
+    try {
+      await this.props.moveProds({
+        variables: {
+          to: deptId,
+          prodIds: selectedProds
+        }
+      })
+      selectedProds.forEach(id => this.selectProd(id))
+    } catch (err) {
+      console.log(err)
+    }
   }
   render() {
     const {visibleDeptTypes} = this.state
