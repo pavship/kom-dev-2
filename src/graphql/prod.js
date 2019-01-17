@@ -20,6 +20,10 @@ export const upsertProd = gql`
       dept {
         id
       }
+      order {
+        id
+        fullnum
+      }
     }
   }
 `

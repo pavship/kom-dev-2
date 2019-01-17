@@ -22,7 +22,7 @@ class ProdItem extends Component {
 
   render() {
     const {checked} = this.state
-    const {melt, meltShift, number, year, progress, isSpoiled, hasDefect} = this.props.prod
+    const {melt, meltShift, number, year, progress, isSpoiled, hasDefect, order} = this.props.prod
 
     return (
       <List.Item onClick={this.handleClick} active={checked}>
@@ -48,6 +48,10 @@ class ProdItem extends Component {
             }
             { isSpoiled &&
               <Label color='red' tag size='small'>БРАК</Label>
+              // <List.Icon floated='right' name='broken chain' color='red' />
+            }
+            { !!order &&
+              <Label color='brown' tag size='small'>{'ЗАКАЗ № ' + order.fullnum}</Label>
               // <List.Icon floated='right' name='broken chain' color='red' />
             }
           </List.Content>

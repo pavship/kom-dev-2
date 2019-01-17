@@ -54,7 +54,7 @@ class Store extends Component {
         />
         { loading ? <div>Загрузка</div> :
           error ? <DataLoadErrorMessage dataTitle='DeptList' /> :
-          <DeptList
+          depts && <DeptList
             depts={depts.filter(dept => _.includes(visibleDeptTypes, dept.type) ? true : false)}
             selectProd={this.selectProd}
           />

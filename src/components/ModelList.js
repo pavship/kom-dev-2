@@ -43,6 +43,7 @@ class ModelList extends Component {
       const prodsDefectCount = prods.filter(p => p.hasDefect).length
       const prodsSpoiledCount = prods.filter(p => p.isSpoiled).length
       const prodsInProgressCount = allProdsCount - prodsReadyCount - prodsSpoiledCount
+      const prodsOrderedCount = prods.filter(p => !!p.order).length
 
       const { id } = deptModel
       const active = _.includes(activeIndex, id)
@@ -87,6 +88,13 @@ class ModelList extends Component {
                   <Icon name='broken chain' color='red' />
                   {prodsSpoiledCount}
                   <Label.Detail>БРАК</Label.Detail>
+                </Label>
+              }
+              {(prodsOrderedCount > 0) &&
+                <Label basic>
+                  <Icon name='gavel' color='brown' />
+                  {prodsOrderedCount}
+                  <Label.Detail>РЕЗЕРВ</Label.Detail>
                 </Label>
               }
             </Label.Group>

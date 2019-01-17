@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
-import { Modal, Form, Icon, Button } from 'semantic-ui-react'
+import { Modal, Form, Icon, Button, Label, Message } from 'semantic-ui-react';
 
+import styled from 'styled-components'
 import { upsertProd } from '../graphql/prod'
 import { deptFragment } from '../graphql/dept'
+import { Div } from './shared/styled-semantic';
 
 const allDeptsAndModelsQuery = gql`
   query allDeptsAndModelsQuery {
@@ -19,10 +21,14 @@ const allDeptsAndModelsQuery = gql`
   }
 `
 
+const EqualField = styled.div`
+  margin: 0 5px 1em 5px;
+  flex: 1 0 150px;
+`
+
 class CRUProdModal extends Component {
   constructor(props) {
-    super(props);
-
+    super(props)
     this.state = {
       open: false,
       deptId: '',
@@ -40,7 +46,8 @@ class CRUProdModal extends Component {
       meltShiftErr: false,
       numberErr: false,
       yearErr: false,
-      progressErr: false
+      progressErr: false,
+      err: null
     }
     if (props.mode === 'edit') {
       this.state = {
@@ -86,7 +93,7 @@ class CRUProdModal extends Component {
       this.setState({ [name]: true })
     }
   }
-  confirm = () => {
+  confirm = async () => {
     const mode = this.props.mode
     //VALIDATION
     const requiredFields = (mode === 'create') ?
@@ -124,38 +131,34 @@ class CRUProdModal extends Component {
       hasDefect,
       isSpoiled
     }
-    if (mode === 'create') {
-      this.props.upsertProd({
+    if (mode === 'edit') input.id = id
+    try {
+      await this.props.upsertProd({
         variables: {
           input: { ...input }
         }
       })
-    } else if (mode === 'edit') {
-      input.id = id
-      this.props.upsertProd({
-        variables: {
-          input: { ...input }
-        }
-      })
+      this.setState({ err: null })
+      this.close()
+    } catch (err) {
+      console.log('err > ', err)
+      this.setState({ err })
     }
-    this.close()
   }
   render() {
-    const { open, deptId, modelId, melt, meltShift, number, year, progress, hasDefect, isSpoiled, deptIdErr, modelIdErr, meltErr, meltShiftErr, numberErr, yearErr, progressErr } = this.state
+    const { open, deptId, modelId, melt, meltShift, number, year, progress, hasDefect, isSpoiled, deptIdErr, modelIdErr, meltErr, meltShiftErr, numberErr, yearErr, progressErr, err } = this.state
     const { trigger, mode } = this.props
     let deptOptions = [{ text: 'Участок ', value: '' }]
     let modelOptions = [{ text: 'Вид продукции', value: '' }]
     if (mode === 'create') {
       const query = this.props.allDeptsAndModelsQuery
       deptOptions = !query ? [ { text: 'Участок ', value: '' } ] :
-      query.loading ? [ { text: 'Загрузка списка', value: '' } ] :
-      query.error ? [ { text: 'Ошибка загрузки списка', value: '' } ] :
-      query.depts.map(dept => {
-        return {
+        query.loading ? [ { text: 'Загрузка списка', value: '' } ] :
+        query.error ? [ { text: 'Ошибка загрузки списка', value: '' } ] :
+        query.depts.map(dept => ({
           text: dept.name,
           value:  dept.id
-        }
-      })
+        })).sort((a, b) => a.text > b.text ? 1 : -1)
       modelOptions = !query ? [ { text: 'Вид продукции', value: '' } ] :
       query.loading ? [ { text: 'Загрузка списка', value: '' } ] :
       query.error ? [ { text: 'Ошибка загрузки списка', value: '' } ] :
@@ -177,27 +180,45 @@ class CRUProdModal extends Component {
       >
         <Modal.Header as='h2'>{mode === 'create' ? 'Добавить' : 'Редактировать'} продукцию </Modal.Header>
         <Modal.Content>
-          <Form onSubmit={() => this.confirm()}>
+          <Form onSubmit={() => this.confirm()} error={!!(err && err.message)}>
             { (mode === 'create') &&
-              <Form.Select label='Участок' name='deptId' options={deptOptions} onChange={this.handleSelChange} value={deptId} error={deptIdErr} required />
+              <Form.Select label='Участок' name='deptId' options={deptOptions} 
+                onChange={this.handleSelChange} value={deptId} error={deptIdErr} required 
+                search noResultsMessage='Ничего не найдено..'
+              />
             }
             { (mode === 'create') &&
-              <Form.Select label='Вид продукции' name='modelId' options={modelOptions} onChange={this.handleSelChange} value={modelId} error={modelIdErr} required />
+              <Form.Select label='Вид продукции' name='modelId' options={modelOptions} onChange={this.handleSelChange} 
+                value={modelId} error={modelIdErr} required search noResultsMessage='Ничего не найдено..'/>
             }
-            <Form.Group widths='equal'>
-              <Form.Input label='Плавка' placeholder='Плавка' required
-                name='melt' type='number' min='0' max='999' error={meltErr}
-                onChange={this.handleIntChange} value={melt}/>
-              <Form.Input label='Плав. смена (если промаркирована)' placeholder='Пл. смена'
-                name='meltShift' type='number' min='0' max='3' error={meltShiftErr}
-                onChange={this.handleIntChange} value={meltShift}/>
-              <Form.Input label='Номер' placeholder='Номер' required
-                name='number' type='number' min='1' max='999' error={numberErr}
-                onChange={this.handleIntChange} value={number}/>
-              <Form.Input label='Год' placeholder='Год' required
-                name='year' type='number' min='16' max='18' error={yearErr}
-                onChange={this.handleIntChange} value={year}/>
-            </Form.Group>
+            <Div
+              d='flex'
+              jc='stretch'
+              ai='flex-end'
+              flw='wrap'
+              m='0 -5px'
+            >
+              <EqualField>
+                <Form.Input label='Плавка' placeholder='Плавка' required
+                  name='melt' type='number' min='0' max='999' error={meltErr}
+                  onChange={this.handleIntChange} value={melt}/>
+              </EqualField>
+              <EqualField>
+                <Form.Input label='Плав. смена (если промаркирована)' placeholder='Пл. смена'
+                  name='meltShift' type='number' min='0' max='3' error={meltShiftErr}
+                  onChange={this.handleIntChange} value={meltShift}/>
+              </EqualField>
+              <EqualField>
+                <Form.Input label='Номер' placeholder='Номер' required
+                  name='number' type='number' min='1' max='999' error={numberErr}
+                  onChange={this.handleIntChange} value={number}/>
+              </EqualField>
+              <EqualField>
+                <Form.Input label='Год' placeholder='Год' required
+                  name='year' type='number' min='16' max={new Date().getFullYear().toString().slice(2,4)} error={yearErr}
+                  onChange={this.handleIntChange} value={year}/>
+              </EqualField>
+            </Div>
             <Form.Input label='Процент завершения' placeholder='%'
               name='progress' type='number' min='0' max='100' error={progressErr}
               onChange={this.handleIntChange} value={progress}/>
@@ -216,6 +237,11 @@ class CRUProdModal extends Component {
                 >Брак</Button>
               </Button.Group>
             </Form.Field>
+            <Message
+              error
+              header={`${mode === 'create' ? 'Добавить' : 'Сохранить'} не удалось..`}
+              content={err && err.message}
+            />
           </Form>
         </Modal.Content>
         <Modal.Actions>

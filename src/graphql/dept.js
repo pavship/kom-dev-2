@@ -21,6 +21,10 @@ export const allDepts = gql`
           name
           article
         }
+        order {
+          id
+          fullnum
+        }
       }
     }
   }
@@ -45,6 +49,10 @@ export const deptFragment = gql`
         id
         name
         article
+      }
+      order {
+        id
+        fullnum
       }
     }
   }
